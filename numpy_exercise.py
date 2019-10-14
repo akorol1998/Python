@@ -1,11 +1,11 @@
 import numpy as np
 
 #10 Create a two 2-D array and Plot it using matplotlib
-arr = np.array([[14,54,67], [3,4,5]])
-arr2 = np.array([[298,1,23]])
+# arr = np.array([[14,54,67], [3,4,5]])
+# arr2 = np.array([[298,1,23]])
 
-arr3 = np.vstack((arr, arr2))
-print(arr3)
+# arr3 = np.vstack((arr, arr2))
+# print(arr3)
 
 
 
@@ -13,8 +13,21 @@ print(arr3)
 
 # 9 Following is the input NumPy array delete column two and insert following new column in its place.
 
+
+
 # arr = np.array([[34,43,73],[82,22,12],[53,94,66]])
 # new_col = np.array([[10,10,10]])
+
+# arr = np.delete(arr, 0, axis=0)
+# arr = np.insert(arr, 2, new_col, axis=0)
+# print(arr)
+
+# arr2 = np.delete(arr, 1, axis=1)
+# arr2 = np.insert(arr2, 1, new_col, axis=1)
+# print(arr2)
+
+
+
 # print(arr)
 # arr = np.delete(arr, 1, axis=1)
 # arr = np.insert(arr, 1, new_col, axis=1)
@@ -25,6 +38,10 @@ print(arr3)
 # 8 Following is the 2-D array. Print max from axis 0 and min from axis 1
 
 # arr = np.array([[34,43,73],[82,22,12],[53,94,66]])
+# print(arr)
+# ma = np.amax(arr, 1)
+# mi = np.amean(arr, 0)
+# print(mi)
 
 # mina = np.amin(arr, 1)
 # print(mina)
@@ -43,8 +60,16 @@ print(arr3)
 
 
 # 7 Sort following NumPy array
-# # sampleArray = numpy.array([[34,43,73],[82,22,12],[53,94,66]])
+
 # arr = np.array([[34,43,73],[82,22,13],[53,94,66]])
+
+# by_row = arr[:, arr[0,:].argsort()]
+# by_col = arr[arr[:,2].argsort(), :]
+
+# print(arr)
+
+# print(by_row)
+# print(by_col)
 # print(arr)
 # arr2 = np.sort(arr, axis=1, kind='quicksort')
 # # print(arr2)
@@ -60,7 +85,9 @@ print(arr3)
 
 # 6 Split the array into four equal-sized sub-arrays
 
-# arr = np.arange(10,34,1).reshape(8,3)
+# arr = np.arange(24)
+# arr2 = np.array(np.split(arr, [8,16]))
+# print(arr2)
 # np.split() - splits the array either on number of sub_arrays or or at different indents.
 # newArray = np.split(arr, 4)
 # print(newArray)
@@ -70,7 +97,12 @@ print(arr3)
 
 #5 Add the following two NumPy arrays and Modify a result array by calculating the square root of each element
 
-# myArray = np.random.rand(3,2)
+# myArray = np.random.rand(100)
+# print(myArray)
+# with np.nditer(myArray, op_flags=["readwrite"])
+# with np.nditer(myArray, op_flags=["readwrite"]) as it:
+# 	for x in it:
+# 		x[...] = x*2
 # print(myArray)
 # with np.nditer(myArray, op_flags=['readwrite']) as it:
 # 	for x in it:
@@ -89,6 +121,7 @@ print(arr3)
 # 4 Following is the given numpy array return array of odd rows and even columns
 # sampleArray = np.array([[3 ,6, 9, 12], [15 ,18, 21, 24], 
 # [27 ,30, 33, 36], [39 ,42, 45, 48], [51 ,54, 57, 60]])
+
 
 # Printing all row`s odd numbers and columns even numbers
 # print(sampleArray[::2,1::2])
@@ -118,7 +151,8 @@ print(arr3)
 
 # Arange command works similarly to range fucntion
 # arr = np.arange(100, 200, 10)
-
+# arr = np.arange(100,200,10).reshape(5,2)
+# print(arr)
 
 # Create a 4X2 integer array and Prints its attributes
 # Reshape command allowas us to reshape the given array to the required shape
