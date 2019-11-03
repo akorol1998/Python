@@ -1,10 +1,13 @@
+# !/Users/akorol/Desktop/University/Software_testing/Labs/lab2/env/bin/python3
 import sys
+import time
 from PIL import Image
 from io import BytesIO
 from selenium import webdriver
+import platform
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QImage, QPalette, QBrush, QIcon, QColor
+from PyQt5.QtGui import QImage, QPalette, QBrush, QIcon, QColor, QPixmap
 from PyQt5.QtWidgets import *
 from colour import Color
 from PyQt5.QtCore import Qt
@@ -17,6 +20,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 # https://stackoverflow.com/questions/15018372/how-to-take-partial-screenshot-with-selenium-webdriver-in-python
 class MainWindow(QMainWindow):
+    DARWIN_EXEC = "./chromdriver"
+    WINDOWS_EXEC = ".\chromdriver.exe"
+    LINUX_EXEC = "chromdriver_linux"
     def __init__(self):
         QMainWindow.__init__(self)
         self.driver = None
@@ -70,6 +76,13 @@ class MainWindow(QMainWindow):
 
     def error_message(self):
         QMessageBox.about(self, 'Error', 'Invalid number')
+
+    def show_answer(self):
+        box = QMessageBox()
+        box.setWindowTitle("Wassap slappers")
+        box.setText("Answer")
+        box.setIconPixmap(QPixmap("res.png"))
+        box.exec_()
 
     def set_uncheckable(self, button):
         buttons_list = [self.ui.sin_button,
@@ -127,35 +140,71 @@ class MainWindow(QMainWindow):
             print(f'Error: {e}')
             self.error_message()
     
-    # cos(1)-sin(45)
+
     def _(self):
         option = webdriver.ChromeOptions()
-        option.add_argument(" - incognito")
-        self.driver = webdriver.Chrome(chrome_options=option)
-        self.driver.get("https://www.symbolab.com/solver/trigonometric-simplification-calculator")
-        el = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="main-input"]/span/textarea')))
-        # el = self.driver.find_element(By.XPATH, '//*[@id="main-input"]/span/textarea')#//*[@id="equation_solver_input"]
-        print(el)
+        os_name = platform.system()
+        option.add_argument("--incognito")
+        print(os_name)
+        if os_name == "Darwin":
+            self.driver = webdriver.Chrome(chrome_options=option)
+        elif os_name == "Windows":
+            self.driver = webdriver.Chrome(executable_path=type(self).WINDOWS_EXEC, chrome_options=option)
+        elif os_name == "Linux":
+            self.driver = webdriver.Chrome(executable_path=type(self).LINUX_EXEC, chrome_options=option)
+        while 1:
+            try:
+                self.driver.get("https://www.symbolab.com/solver/trigonometric-simplification-calculator")
+                el = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="main-input"]/span/textarea')))
+                break
+            except TimeoutException:
+                pass
         el.clear()
-        print(el)
-        el.send_keys(self.result)
+        dig = 0
+        for i in self.result:
+            if dig:
+                if i.isdigit() == False:
+                    el.send_keys(u'\ue014')
+                    dig = 0
+            el.send_keys(i)
+            if i == "^":
+                dig = 1
         self.driver.find_element(By.XPATH, '//*[@id="Codepad"]/div[4]/button').click()
-        # WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="results"]/div[2]/span[2]')))
-        element = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="steps-container"]/li[2]/div[2]')))
-         # self.driver.find_element(By.XPATH, '//*[@id="steps-container"]/li[2]/div[2]')
+
+        # gets visible method
+        try:
+            WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="steps-container"]/li[2]/div[1]')))
+        except TimeoutException:
+            self.error_message()
+
+        # Div with answer
+        last_el = self.driver.find_elements(By.XPATH, "//li[@class='solution_step_list_item']")[-1]
+        element = last_el.find_element(By.XPATH, ".//div[@class='solution_step_result']")
         ActionChains(self.driver).move_to_element(element).perform()
         loc = element.location
         size = element.size
-        print(element)
-        png = self.driver.get_screenshot_as_png()
-        im = Image.open(BytesIO(png))
-        x = element.location["x"]
-        y = element.location["y"]
-        w = element.size["width"]
-        h = element.size["height"]
-        im.crop((math.floor(x),math.floor(y),math.ceil(w),math.ceil(h)))
-        im.save("test.png")
+        x = math.floor(loc["x"])
+        y = math.floor(loc["y"])
+        w = math.ceil(size["width"])
+        h = math.ceil(size["height"])
 
+        # Central Div
+        add = self.driver.find_element(By.XPATH, '//*[@id="solution_page"]/div[7]/div[1]/div')
+        addh = add.size['height']
+        addw = add.size['width']
+        
+        # Right ad
+        right_add = self.driver.find_element(By.XPATH, '//*[@id="solution_page"]/div[7]/div[3]')
+        raddh = right_add.size['height']
+        raddw = right_add.size['width']
+
+        png = self.driver.get_screenshot_as_png()
+        self.driver.quit()
+        im = Image.open(BytesIO(png))   
+        width, height = im.size
+        a = im.crop((x+addw+50, height-(h+h//2 + 8), width-(w+x+addw+raddw), height))
+        a.save("res.png")
+        self.show_answer()
 
     def null(self):
         self.ui.lineEdit.setText("")
@@ -177,10 +226,6 @@ class MainWindow(QMainWindow):
             self.msg.exec_()
             if not self.ui.sin_button.isChecked():
                 self.ui.sin_button.setChecked(True)
-
-        
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
