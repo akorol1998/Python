@@ -42,28 +42,28 @@ class MainWindow(QMainWindow):
         self.ui.sin_button.setToolTip('sin(x)')
         self.ui.sin_button.setCheckable(True)
         self.ui.sin_button.setAutoExclusive(True)
-        self.ui.sin_button.toggled.connect(self.sinx)
+        # self.ui.sin_button.toggled.connect(self.sinx)
 
         self.ui.cos_button.setToolTip('cos(x)')
         self.ui.cos_button.setCheckable(True)
         self.ui.cos_button.setAutoExclusive(True)
-        self.ui.cos_button.toggled.connect(self.cosx)
+        # self.ui.cos_button.toggled.connect(self.cosx)
 
         self.ui.tg_button.setToolTip('tg(x)')
         self.ui.tg_button.setCheckable(True)
         self.ui.tg_button.setAutoExclusive(True)
-        self.ui.tg_button.toggled.connect(self.tgx)
+        # self.ui.tg_button.toggled.connect(self.tgx)
 
         self.ui.ctg_button.setToolTip('ctg(x)')
         self.ui.ctg_button.setCheckable(True)
         self.ui.ctg_button.setAutoExclusive(True)
-        self.ui.ctg_button.toggled.connect(self.ctgx)
+        # self.ui.ctg_button.toggled.connect(self.ctgx)
 
 
         self.ui.expr_button.setToolTip('expr()')
         self.ui.expr_button.setCheckable(True)
         self.ui.expr_button.setAutoExclusive(True)
-        self.ui.expr_button.toggled.connect(self.expr)
+        # self.ui.expr_button.toggled.connect(self.expr)
 
         self.ui.null_button.setToolTip('Clean lineEdit')
         self.ui.null_button.pressed.connect(self.null)
@@ -92,6 +92,7 @@ class MainWindow(QMainWindow):
 
         for i in range(len(buttons_list)):
             if buttons_list[i] != button:
+                print(buttons_list[i].text())
                 buttons_list[i].setChecked(False)
 
     def expr(self):
@@ -106,9 +107,11 @@ class MainWindow(QMainWindow):
             x = self.ui.lineEdit.text()
             num = str(math.sin(int(x)))
             self.result = num
+            return 1
         except (ValueError, ZeroDivisionError) as e:
             print(f'Error: {e}')
             self.error_message()
+            return 0
 
     def cosx(self):
         try:
@@ -116,9 +119,11 @@ class MainWindow(QMainWindow):
             x = self.ui.lineEdit.text()
             num = str(math.cos(int(x)))
             self.result = num
+            return 1
         except (ValueError, ZeroDivisionError) as e:
             print(f'Error: {e}')
             self.error_message()
+            return 0
 
     def tgx(self):
         try:
@@ -126,9 +131,11 @@ class MainWindow(QMainWindow):
             x = self.ui.lineEdit.text()
             num = str(math.tan(int(x)))
             self.result = num
+            return 1
         except (ValueError, ZeroDivisionError) as e:
             print(f'Error: {e}')
             self.error_message()
+            return 0
 
     def ctgx(self):
         try:
@@ -136,9 +143,52 @@ class MainWindow(QMainWindow):
             x = self.ui.lineEdit.text()
             num = str(math.cos(int(x)) / math.sin(int(x)))
             self.result = num
+            return 1
         except (ValueError, ZeroDivisionError) as e:
             print(f'Error: {e}')
             self.error_message()
+            return 0
+    
+    def null(self):
+        self.ui.lineEdit.setText("")
+        self.result = ''
+
+    def compute_function(self):
+        buttons_list = [self.ui.sin_button,
+                        self.ui.cos_button,
+                        self.ui.tg_button,
+                        self.ui.ctg_button]
+        funcs = ["tg", 'ctg', 'sin', 'cos']
+        for i in buttons_list:
+            if i.isChecked:
+                txt = i.text()
+                break
+        if txt == 'sin':
+            return self.sinx()
+        elif txt == 'cos':
+            return self.cosx()
+        elif txt == 'tg':
+            return self.tgx()
+        elif txt == 'ctg':
+            return self.ctgsx()
+
+
+    def count(self):
+        if self.ui.expr_button.isChecked():
+            self._()
+        elif self.compute_function():
+            self.msg = QMessageBox()
+            self.msg.setStyleSheet('background-color: #d3d3d3')
+            self.msg.setWindowIcon(QIcon('icon.png'))
+            self.msg.setWindowTitle("Result")
+            if not self.result:
+                self.msg.setText("Nothing to compute")
+            else:
+                self.msg.setText(self.result)
+            self.msg.setStandardButtons(QMessageBox.Ok)
+            self.msg.exec_()
+            # if not self.ui.sin_button.isChecked():
+            #     self.ui.sin_button.setChecked(True)
     
 
     def _(self):
@@ -178,7 +228,13 @@ class MainWindow(QMainWindow):
             self.error_message()
 
         # Div with answer
-        last_el = self.driver.find_elements(By.XPATH, "//li[@class='solution_step_list_item']")[-1]
+        try:
+            last_el = self.driver.find_elements(By.XPATH, "//li[@class='solution_step_list_item']")[-1]
+        except IndexError:
+            self.driver.quit()
+            self.error_message()
+            return
+
         element = last_el.find_element(By.XPATH, ".//div[@class='solution_step_result']")
         ActionChains(self.driver).move_to_element(element).perform()
         loc = element.location
@@ -206,26 +262,6 @@ class MainWindow(QMainWindow):
         a.save("res.png")
         self.show_answer()
 
-    def null(self):
-        self.ui.lineEdit.setText("")
-        self.result = ''
-
-    def count(self):
-        if self.ui.expr_button.isChecked():
-            self._()
-        else:
-            self.msg = QMessageBox()
-            self.msg.setStyleSheet('background-color: #d3d3d3')
-            self.msg.setWindowIcon(QIcon('icon.png'))
-            self.msg.setWindowTitle("Result")
-            if not self.result:
-                self.msg.setText("Nothing to compute")
-            else:
-                self.msg.setText(self.result)
-            self.msg.setStandardButtons(QMessageBox.Ok)
-            self.msg.exec_()
-            if not self.ui.sin_button.isChecked():
-                self.ui.sin_button.setChecked(True)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
